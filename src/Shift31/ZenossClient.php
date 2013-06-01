@@ -53,10 +53,12 @@ class ZenossClient
         try {
             $this->_client->setUri('http://' . $this->_host . '/zport/acl_users/cookieAuthHelper/login');
 
-            $this->_client->setParameterPost('__ac_name', $this->_username);
-            $this->_client->setParameterPost('__ac_password', $this->_password);
-            $this->_client->setParameterPost('submitted', 'true');
-            $this->_client->setParameterPost('came_from', $this->_host . '/zport/dmd');
+            $this->_client->setParameterPost(array(
+                                                  '__ac_name' => $this->_username,
+                                                  '__ac_password' => $this->_password,
+                                                  'submitted' =>'true',
+                                                  'came_from' => $this->_host . '/zport/dmd'
+                                             ));
 
             $response = $this->_client->setMethod(Request::METHOD_POST)->send();
 
