@@ -92,9 +92,11 @@ class ZenossClient
         
         $this->_client->setUri('http://' . $this->_host . '/zport/dmd/' . $this->ROUTERS[$router] . '_router');
         $this->_client->addCookie($this->_cookies->getMatchingCookies($this->_client->getUri()));
-        
+
+        $headers = $this->_client->getRequest()->getHeaders();
+
         # NOTE: Content-type MUST be set to 'application/json' for these requests
-        $this->_client->setHeaders('Content-type', 'application/json; charset=utf-8');
+        $headers->addHeaderLine('Content-type', 'application/json; charset=utf-8');
         
         # Convert the request parameters into JSON
         $reqData = json_encode(array(
