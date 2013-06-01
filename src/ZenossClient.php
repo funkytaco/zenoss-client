@@ -2,8 +2,6 @@
 
 namespace Shift31;
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use Zend\Http\Client, Zend\Http\Request, Zend\Http\Cookies;
 
 
@@ -110,8 +108,7 @@ class ZenossClient
 
         $response = $this->_client->setMethod(Request::METHOD_POST)->send();
         
-        # Increment the request count ('tid'). More important if sending multiple
-        # calls in a single request
+        # Increment the request count ('tid'). More important if sending multiple calls in a single request
         $this->_reqCount++;
         
         $body = json_decode($response->getBody());
