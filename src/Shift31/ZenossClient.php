@@ -7,19 +7,20 @@ use Zend\Http\Client, Zend\Http\Request, Zend\Http\Cookies;
 
 class ZenossClient
 {
-    protected $ROUTERS = array('MessagingRouter' => 'messaging',
-                            'EventsRouter' => 'evconsole',
-                            'ProcessRouter' => 'process',
-                            'ServiceRouter' => 'service',
-                            'DeviceRouter' => 'device',
-                            'NetworkRouter' => 'network',
-                            'TemplateRouter' => 'template',
-                            'DetailNavRouter' => 'detailnav',
-                            'ReportRouter' => 'report',
-                            'MibRouter' => 'mib',
-                            'ZenPackRouter' => 'zenpack',
-                            );
-    
+    protected $ROUTERS
+        = array('MessagingRouter' => 'messaging',
+                'EventsRouter'    => 'evconsole',
+                'ProcessRouter'   => 'process',
+                'ServiceRouter'   => 'service',
+                'DeviceRouter'    => 'device',
+                'NetworkRouter'   => 'network',
+                'TemplateRouter'  => 'template',
+                'DetailNavRouter' => 'detailnav',
+                'ReportRouter'    => 'report',
+                'MibRouter'       => 'mib',
+                'ZenPackRouter'   => 'zenpack',
+        );
+
     private $_host;
     private $_username;
     private $_password;
@@ -28,7 +29,7 @@ class ZenossClient
     private $_cookies;
     private $_reqCount = 0;
 
-	protected $_logger;
+    protected $_logger;
 
 
     /**
@@ -37,13 +38,13 @@ class ZenossClient
      * @param      $password
      * @param null $logger
      */
-	public function __construct($host, $username, $password, $logger = null)
+    public function __construct($host, $username, $password, $logger = null)
     {
         $this->_host = $host;
         $this->_username = $username;
         $this->_password = $password;
 
-		$this->_logger = $logger;
+        $this->_logger = $logger;
 
         $this->_client = new Client();
         $this->_cookies = new Cookies();
@@ -53,12 +54,14 @@ class ZenossClient
         try {
             $this->_client->setUri('http://' . $this->_host . '/zport/acl_users/cookieAuthHelper/login');
 
-            $this->_client->setParameterPost(array(
-                                                  '__ac_name' => $this->_username,
-                                                  '__ac_password' => $this->_password,
-                                                  'submitted' =>'true',
-                                                  'came_from' => $this->_host . '/zport/dmd'
-                                             ));
+            $this->_client->setParameterPost(
+                array(
+                     '__ac_name'     => $this->_username,
+                     '__ac_password' => $this->_password,
+                     'submitted'     => 'true',
+                     'came_from'     => $this->_host . '/zport/dmd'
+                )
+            );
 
             $response = $this->_client->setMethod(Request::METHOD_POST)->send();
 
@@ -75,12 +78,12 @@ class ZenossClient
     /**
      * @param string $router
      * @param string $method
-     * @param array $data
+     * @param array  $data
      *
      * @return string
      * @throws \Exception
      */
-    protected function _routerRequest($router, $method, $data = array()) 
+    protected function _routerRequest($router, $method, $data = array())
     {
         if (!array_key_exists($router, $this->ROUTERS)) {
             try {
@@ -89,7 +92,7 @@ class ZenossClient
                 $this->_log('crit', $e);
             }
         }
-        
+
         $this->_client->setUri('http://' . $this->_host . '/zport/dmd/' . $this->ROUTERS[$router] . '_router');
         $this->_client->addCookie($this->_cookies->getMatchingCookies($this->_client->getUri()));
 
@@ -97,26 +100,27 @@ class ZenossClient
 
         # NOTE: Content-type MUST be set to 'application/json' for these requests
         $headers->addHeaderLine('Content-type', 'application/json; charset=utf-8');
-        
+
         # Convert the request parameters into JSON
-        $reqData = json_encode(array(
-                                     'action' => $router,
-                                     'method' => $method,
-                                     'data' => $data,
-                                     'type' => 'rpc',
-                                     'tid' => $this->_reqCount,
-                                     )
-                               );
-        
+        $reqData = json_encode(
+            array(
+                 'action' => $router,
+                 'method' => $method,
+                 'data'   => $data,
+                 'type'   => 'rpc',
+                 'tid'    => $this->_reqCount,
+            )
+        );
+
         $this->_client->setRawBody($reqData);
 
         $response = $this->_client->setMethod(Request::METHOD_POST)->send();
-        
+
         # Increment the request count ('tid'). More important if sending multiple calls in a single request
         $this->_reqCount++;
-        
+
         $body = json_decode($response->getBody());
-        
+
         if ($body->type == 'exception') {
             try {
                 throw new \Exception($body->message);
@@ -125,7 +129,7 @@ class ZenossClient
                 return $ze->getMessage();
             }
         }
-        
+
         return $body->result;
     }
 
@@ -135,16 +139,16 @@ class ZenossClient
      *
      * @return mixed
      */
-    public function getTree($id) 
+    public function getTree($id)
     {
         $parameters = new \stdClass();
         $parameters->id = $id;
-        
+
         $data = array($parameters);
-        
+
         $result = $this->_routerRequest('DeviceRouter', 'getTree', $data);
-        
-        return $result[0];    
+
+        return $result[0];
     }
 
 
@@ -160,8 +164,10 @@ class ZenossClient
      *
      * @return mixed
      */
-    public function getComponents($uid = null, $meta_type = null, $keys = null, $start = 0,
-                                  $limit = 50, $sort = 'name', $dir = 'ASC', $name = null)
+    public function getComponents(
+        $uid = null, $meta_type = null, $keys = null, $start = 0,
+        $limit = 50, $sort = 'name', $dir = 'ASC', $name = null
+    )
     {
         $parameters = new \stdClass();
         $parameters->uid = $uid;
@@ -174,7 +180,7 @@ class ZenossClient
         $parameters->sort = $sort;
         $parameters->dir = $dir;
         $parameters->name = $name;
-        
+
         $data = array($parameters);
 
         /** @noinspection PhpUndefinedFieldInspection */
@@ -191,9 +197,9 @@ class ZenossClient
     {
         $parameters = new \stdClass();
         $parameters->uid = $uid;
-        
+
         $data = array($parameters);
-        
+
         return $this->_routerRequest('DeviceRouter', 'getComponentTree', $data);
     }
 
@@ -211,7 +217,7 @@ class ZenossClient
         if (!is_null($keys)) {
             $parameters->keys = $keys;
         }
-        
+
         $data = array($parameters);
 
         /** @noinspection PhpUndefinedFieldInspection */
@@ -234,11 +240,11 @@ class ZenossClient
         $parameters = new \stdClass();
         $parameters->uid = $uid;
         $parameters->start = $start;
-        $parameters->params = (object) $params;        
+        $parameters->params = (object) $params;
         $parameters->limit = $limit;
         $parameters->sort = $sort;
         $parameters->dir = $dir;
-        
+
         $data = array($parameters);
 
         /** @noinspection PhpUndefinedFieldInspection */
@@ -300,12 +306,14 @@ class ZenossClient
     public function getDevicesByProductionState($productionState, $limit = 50, $sort = 'name', $dir = 'ASC')
     {
         /* TO-DO: Handle multiple production states */
-        
+
         $productionStates = $this->getProductionStates();
-        
+
         if (array_key_exists($productionState, $productionStates)) {
             // productionState should be an array of states
-            return $this->getDevices(null, 0, array('productionState' => array($productionStates[$productionState])), $limit, $sort, $dir);
+            return $this->getDevices(
+                null, 0, array('productionState' => array($productionStates[$productionState])), $limit, $sort, $dir
+            );
         } else {
             try {
                 throw new \Exception("Unknown production state: $productionState");
@@ -327,7 +335,7 @@ class ZenossClient
     {
         $parameters = new \stdClass();
         $parameters->uid = $uid;
-        
+
         $data = array($parameters);
 
         /** @noinspection PhpUndefinedFieldInspection */
@@ -346,7 +354,9 @@ class ZenossClient
      *
      * @return mixed
      */
-    public function getEvents($limit = 0, $start = 0, $sort = 'lastTime', $dir = 'DESC', $params = array(), $history = false, $uid = null)
+    public function getEvents(
+        $limit = 0, $start = 0, $sort = 'lastTime', $dir = 'DESC', $params = array(), $history = false, $uid = null
+    )
     {
         $parameters = new \stdClass();
         $parameters->limit = $limit;
@@ -356,7 +366,7 @@ class ZenossClient
         $parameters->params = (object) $params;
         $parameters->history = $history;
         $parameters->uid = $uid;
-        
+
         $data = array($parameters);
 
         /** @noinspection PhpUndefinedFieldInspection */
@@ -378,6 +388,7 @@ class ZenossClient
         return $this->_routerRequest('EventsRouter', 'close', $data);
     }
 
+
     /**
      * @return array
      */
@@ -387,11 +398,11 @@ class ZenossClient
 
         /** @noinspection PhpUndefinedFieldInspection */
         $results = $this->_routerRequest('DeviceRouter', 'getProductionStates')->data;
-        
+
         foreach ($results as $result) {
             $productionStates[$result->name] = $result->value;
         }
-        
+
         return $productionStates;
     }
 
@@ -414,11 +425,11 @@ class ZenossClient
 
         /** @noinspection PhpUndefinedFieldInspection */
         $results = $this->_routerRequest('DeviceRouter', 'getDeviceClasses')->deviceClasses;
-        
+
         foreach ($results as $result) {
             $deviceClasses[] = $result->name;
         }
-        
+
         return $deviceClasses;
     }
 
@@ -454,27 +465,27 @@ class ZenossClient
 
 
     /**
-     * @param int|string    $prodState
-     * @param array  $uids
-     * @param int    $hashcheck
+     * @param int|string $prodState
+     * @param array      $uids
+     * @param int        $hashcheck
      *
      * @return mixed
      */
     public function setProductionState($prodState, $uids = array(), $hashcheck = 1)
-    {   
+    {
         $productionStates = $this->getProductionStates();
 
-		if (is_string($prodState)) {
-			$prodState = $productionStates[$prodState];
-		}
-        
+        if (is_string($prodState)) {
+            $prodState = $productionStates[$prodState];
+        }
+
         $parameters = new \stdClass();
         $parameters->uids = $uids;
         $parameters->prodState = $prodState;
         $parameters->hashcheck = $hashcheck;
 
         $data = array($parameters);
-        
+
         return $this->_routerRequest('DeviceRouter', 'setProductionState', $data);
     }
 
@@ -496,7 +507,7 @@ class ZenossClient
         $sb = base64_decode($sbz);
         $s = gzuncompress($sb);
         $s = join("\n", explode('|', $s));
-        
+
         return $s;
     }
 
@@ -514,20 +525,20 @@ class ZenossClient
         $sz = gzcompress($s, 9);
         $szb = base64_encode($sz);
         $szb_safe = str_replace('+', '-', str_replace('/', '_', $szb));
-        
+
         # strip newlines (created by b64 encode)
         $gopts = str_replace("\n", '', $szb_safe);
-        
+
         return $gopts;
     }
-    
-    
+
+
     /* trees
      *
      * Adapted from http://kevin.vanzonneveld.net/techblog/article/convert_anything_to_tree_structures_in_php/
      * 
      */
-    
+
     /* build a single-dimensional array from a Zenoss tree */
 
     /**
@@ -540,13 +551,15 @@ class ZenossClient
     public static function cleanGroupsTree($tree, &$clean_tree, $root)
     {
         $root = str_replace('/', '.', $root);
-        
+
         foreach ($tree as $branch) {
             foreach ($branch as $key => $value) {
                 if ($key == 'id') {
-                    $clean_tree[str_replace(".zport.dmd.Groups.$root.", '', $value)] = str_replace('.zport.dmd.Groups.', '', $value);
+                    $clean_tree[str_replace(".zport.dmd.Groups.$root.", '', $value)] = str_replace(
+                        '.zport.dmd.Groups.', '', $value
+                    );
                 }
-                
+
                 if ($key == 'children' && is_array($value) && count($value) > 0) {
                     self::cleanGroupsTree($value, $clean_tree, $root);
                 }
@@ -569,18 +582,18 @@ class ZenossClient
         if (!is_array($array)) {
             return false;
         }
-        $splitRE   = '/' . preg_quote($delimiter, '/') . '/';
+        $splitRE = '/' . preg_quote($delimiter, '/') . '/';
         $returnArr = array();
-        
+
         foreach ($array as $key => $val) {
             // Get parent parts and the current leaf
-            $parts  = preg_split($splitRE, $key, -1, PREG_SPLIT_NO_EMPTY);
+            $parts = preg_split($splitRE, $key, -1, PREG_SPLIT_NO_EMPTY);
             $leafPart = array_pop($parts);
-          
+
             // Build parent structure
             // Might be slow for really deep and large structures
-            $parentArr = &$returnArr;
-            
+            $parentArr = & $returnArr;
+
             foreach ($parts as $part) {
                 if (!isset($parentArr[$part])) {
                     $parentArr[$part] = array();
@@ -591,9 +604,9 @@ class ZenossClient
                         $parentArr[$part] = array();
                     }
                 }
-                $parentArr = &$parentArr[$part];
+                $parentArr = & $parentArr[$part];
             }
-          
+
             // Add the final part to the structure
             if (empty($parentArr[$leafPart])) {
                 $parentArr[$leafPart] = $val;
@@ -601,7 +614,7 @@ class ZenossClient
                 $parentArr[$leafPart]['__base_val'] = $val;
             }
         }
-        
+
         return $returnArr;
     }
 
@@ -614,22 +627,22 @@ class ZenossClient
      */
     public static function makeOptionList($arr, $indent = 0)
     {
-        foreach ($arr as $k => $v){
+        foreach ($arr as $k => $v) {
             // skip the baseval thingy. Not a real node.
             if ($k == "__base_val") {
                 continue;
             }
-            
+
             // determine the real value of this node.
-            $show_val = ( is_array($v) ? $v["__base_val"] : $v );
-     
+            $show_val = (is_array($v) ? $v["__base_val"] : $v);
+
             // show the actual node
             //<!-- <option value="NOC.Development">Development</option> -->
             echo "<option value=\"$show_val\">";
             echo ($indent > 0) ? str_repeat("-", $indent) . " $k" : "$k";
             echo "</option>\n";
-     
-            if (is_array($v)){
+
+            if (is_array($v)) {
                 // this is what makes it recursive, rerun for childs
                 self::makeOptionList($v, $indent + 1);
             }
@@ -637,16 +650,16 @@ class ZenossClient
     }
 
 
-	/**
-	 *
-	 * @param string $priority
-	 * @param string $message
-	 */
-	protected function _log($priority, $message)
-	{
-		if ($this->_logger != null) {
-			$class = str_replace(__NAMESPACE__ . "\\", '', get_called_class());
-			$this->_logger->$priority("[$class] - $message");
-		}
-	}
+    /**
+     *
+     * @param string $priority
+     * @param string $message
+     */
+    protected function _log($priority, $message)
+    {
+        if ($this->_logger != null) {
+            $class = str_replace(__NAMESPACE__ . "\\", '', get_called_class());
+            $this->_logger->$priority("[$class] - $message");
+        }
+    }
 }
