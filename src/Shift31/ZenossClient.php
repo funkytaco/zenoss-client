@@ -373,11 +373,44 @@ class ZenossClient
 		$data = array($parameters);
 
 		/** @noinspection PhpUndefinedFieldInspection */
-
 		return $this->_routerRequest('EventsRouter', 'query', $data)->events;
 	}
 
 
+	/**
+	 * @param string $summary		New event's summary
+	 * @param string $device		Device uid to use for new event
+	 * @param string $component		Component uid to use for new event
+	 * @param string $severity		Severity of new event. Can be one of the following: Critical, Error, Warning, Info, Debug, Clean
+	 * @param string $evclasskey	The Event Class Key to assign to this event
+	 * @param string $evclass		Event class for the new event
+	 *
+	 * @return string
+	 */
+	public function addEvent($summary, $device, $severity, $component = '', $evclasskey = '', $evclass = '')
+	{
+		$parameters = new \stdClass();
+		$parameters->summary = $summary;
+		$parameters->device = $device;
+		$parameters->component = $component;
+		$parameters->severity = $severity;
+		$parameters->evclasskey = $evclasskey;
+		$parameters->evclass = $evclass;
+
+		$data = array($parameters);
+
+		return $this->_routerRequest('EventsRouter', 'add_event', $data);
+	}
+
+	/**
+	 * @param array $evids
+	 * @param array $params
+	 * @param null  $excludeIds
+	 * @param null  $uid
+	 * @param null  $asof
+	 *
+	 * @return string
+	 */
 	public function closeEvents($evids = array(), $params = array(), $excludeIds = null, $uid = null, $asof = null)
 	{
 		$parameters = new \stdClass();
