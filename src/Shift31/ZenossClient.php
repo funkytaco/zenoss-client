@@ -2,8 +2,10 @@
 
 namespace Shift31;
 
-use Zend\Http\Client, Zend\Http\Request, Zend\Http\Cookies;
 
+use Zend\Http\Client;
+use Zend\Http\Cookies;
+use Zend\Http\Request;
 
 class ZenossClient
 {
@@ -114,24 +116,31 @@ class ZenossClient
 
 		$this->_client->setRawBody($reqData);
 
-		$response = $this->_client->setMethod(Request::METHOD_POST)->send();
 
-		# Increment the request count ('tid'). More important if sending multiple calls in a single request
-		$this->_reqCount++;
+		try {
+			$response = $this->_client->setMethod(Request::METHOD_POST)->send();
 
-		$body = json_decode($response->getBody());
+			# Increment the request count ('tid'). More important if sending multiple calls in a single request
+			$this->_reqCount++;
 
-		if ($body->type == 'exception') {
-			try {
-				throw new \Exception($body->message);
-			} catch (\Exception $ze) {
-				$this->_log('crit', $ze->getMessage());
+			$body = json_decode($response->getBody());
 
-				return $ze->getMessage();
+			if ($body->type == 'exception') {
+
+				$this->_log('err', $body->result);
+
+				return null;
+
+			} else {
+				return $body->result;
 			}
-		}
 
-		return $body->result;
+		} catch (\Exception $e) {
+			$this->_log('crit', $e->getMessage());
+			$this->_log('debug', "Exception Stack Trace: " . $e->getTraceAsString());
+
+			return null;
+		}
 	}
 
 
@@ -318,14 +327,8 @@ class ZenossClient
 				null, 0, array('productionState' => array($productionStates[$productionState])), $limit, $sort, $dir
 			);
 		} else {
-			try {
-				throw new \Exception("Unknown production state: $productionState");
-			} catch (\Exception $e) {
-				$this->_log('crit', $e);
-			}
+			throw new \Exception("Unknown production state: $productionState");
 		}
-
-		return null;
 	}
 
 
@@ -373,17 +376,18 @@ class ZenossClient
 		$data = array($parameters);
 
 		/** @noinspection PhpUndefinedFieldInspection */
+
 		return $this->_routerRequest('EventsRouter', 'query', $data)->events;
 	}
 
 
 	/**
-	 * @param string $summary		New event's summary
-	 * @param string $device		Device uid to use for new event
-	 * @param string $component		Component uid to use for new event
-	 * @param string $severity		Severity of new event. Can be one of the following: Critical, Error, Warning, Info, Debug, Clean
-	 * @param string $evclasskey	The Event Class Key to assign to this event
-	 * @param string $evclass		Event class for the new event
+	 * @param string $summary          New event's summary
+	 * @param string $device           Device uid to use for new event
+	 * @param string $component        Component uid to use for new event
+	 * @param string $severity         Severity of new event. Can be one of the following: Critical, Error, Warning, Info, Debug, Clean
+	 * @param string $evclasskey       The Event Class Key to assign to this event
+	 * @param string $evclass          Event class for the new event
 	 *
 	 * @return string
 	 */
@@ -401,6 +405,7 @@ class ZenossClient
 
 		return $this->_routerRequest('EventsRouter', 'add_event', $data);
 	}
+
 
 	/**
 	 * @param array $evids
@@ -436,8 +441,10 @@ class ZenossClient
 		/** @noinspection PhpUndefinedFieldInspection */
 		$results = $this->_routerRequest('DeviceRouter', 'getProductionStates')->data;
 
-		foreach ($results as $result) {
-			$productionStates[$result->name] = $result->value;
+		if ($results != null) {
+			foreach ($results as $result) {
+				$productionStates[$result->name] = $result->value;
+			}
 		}
 
 		return $productionStates;
@@ -463,8 +470,10 @@ class ZenossClient
 		/** @noinspection PhpUndefinedFieldInspection */
 		$results = $this->_routerRequest('DeviceRouter', 'getDeviceClasses')->deviceClasses;
 
-		foreach ($results as $result) {
-			$deviceClasses[] = $result->name;
+		if ($results != null) {
+			foreach ($results as $result) {
+				$deviceClasses[] = $result->name;
+			}
 		}
 
 		return $deviceClasses;
