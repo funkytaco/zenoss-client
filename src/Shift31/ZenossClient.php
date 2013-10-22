@@ -160,7 +160,7 @@ class ZenossClient
 
 		$result = $this->_routerRequest('DeviceRouter', 'getTree', $data);
 
-		return $result[0];
+		return $result != null ? $result[0] : null;
 	}
 
 
@@ -194,9 +194,10 @@ class ZenossClient
 
 		$data = array($parameters);
 
-		/** @noinspection PhpUndefinedFieldInspection */
+		$response = $this->_routerRequest('DeviceRouter', 'getComponents', $data);
 
-		return $this->_routerRequest('DeviceRouter', 'getComponents', $data)->data;
+		/** @noinspection PhpUndefinedFieldInspection */
+		return $response != null ? $response->data : null;
 	}
 
 
@@ -232,9 +233,10 @@ class ZenossClient
 
 		$data = array($parameters);
 
-		/** @noinspection PhpUndefinedFieldInspection */
+		$response = $this->_routerRequest('DeviceRouter', 'getInfo', $data);
 
-		return $this->_routerRequest('DeviceRouter', 'getInfo', $data)->data;
+		/** @noinspection PhpUndefinedFieldInspection */
+		return $response != null ? $response->data : null;
 	}
 
 
@@ -260,9 +262,10 @@ class ZenossClient
 
 		$data = array($parameters);
 
-		/** @noinspection PhpUndefinedFieldInspection */
+		$response = $this->_routerRequest('DeviceRouter', 'getDevices', $data);
 
-		return $this->_routerRequest('DeviceRouter', 'getDevices', $data)->devices;
+		/** @noinspection PhpUndefinedFieldInspection */
+		return $response != null ? $response->devices : null;
 	}
 
 
@@ -319,7 +322,7 @@ class ZenossClient
 	 */
 	public function getDevicesByProductionState($productionState, $limit = 50, $sort = 'name', $dir = 'ASC')
 	{
-		/* TO-DO: Handle multiple production states */
+		/* TODO: Handle multiple production states */
 
 		$productionStates = $this->getProductionStates();
 
@@ -346,9 +349,10 @@ class ZenossClient
 
 		$data = array($parameters);
 
-		/** @noinspection PhpUndefinedFieldInspection */
+		$response = $this->_routerRequest('DeviceRouter', 'getGraphDefs', $data);
 
-		return $this->_routerRequest('DeviceRouter', 'getGraphDefs', $data)->data;
+		/** @noinspection PhpUndefinedFieldInspection */
+		return $response != null ? $response->data : null;
 	}
 
 
@@ -377,9 +381,10 @@ class ZenossClient
 
 		$data = array($parameters);
 
-		/** @noinspection PhpUndefinedFieldInspection */
+		$response = $this->_routerRequest('EventsRouter', 'query', $data);
 
-		return $this->_routerRequest('EventsRouter', 'query', $data)->events;
+		/** @noinspection PhpUndefinedFieldInspection */
+		return $response != null ? $response->events : null;
 	}
 
 
@@ -440,8 +445,10 @@ class ZenossClient
 	{
 		$productionStates = array();
 
+		$response = $this->_routerRequest('DeviceRouter', 'getProductionStates');
+
 		/** @noinspection PhpUndefinedFieldInspection */
-		$results = $this->_routerRequest('DeviceRouter', 'getProductionStates')->data;
+		$results = $response != null ? $response->data : null;
 
 		if ($results != null) {
 			foreach ($results as $result) {
@@ -469,8 +476,10 @@ class ZenossClient
 	{
 		$deviceClasses = array();
 
+		$response = $this->_routerRequest('DeviceRouter', 'getDeviceClasses');
+
 		/** @noinspection PhpUndefinedFieldInspection */
-		$results = $this->_routerRequest('DeviceRouter', 'getDeviceClasses')->deviceClasses;
+		$results = $response != null ? $response->deviceClasses : null;
 
 		if ($results != null) {
 			foreach ($results as $result) {
@@ -487,8 +496,10 @@ class ZenossClient
 	 */
 	public function getSystems()
 	{
+		$response = $this->_routerRequest('DeviceRouter', 'getSystems');
+
 		/** @noinspection PhpUndefinedFieldInspection */
-		return $this->_routerRequest('DeviceRouter', 'getSystems')->systems;
+		return $response != null ? $response->systems : null;
 	}
 
 
@@ -497,8 +508,10 @@ class ZenossClient
 	 */
 	public function getGroups()
 	{
+		$response = $this->_routerRequest('DeviceRouter', 'getGroups');
+
 		/** @noinspection PhpUndefinedFieldInspection */
-		return $this->_routerRequest('DeviceRouter', 'getGroups')->groups;
+		return $response != null ? $response->groups : null;
 	}
 
 
@@ -507,8 +520,10 @@ class ZenossClient
 	 */
 	public function getLocations()
 	{
+		$response = $this->_routerRequest('DeviceRouter', 'getLocations');
+
 		/** @noinspection PhpUndefinedFieldInspection */
-		return $this->_routerRequest('DeviceRouter', 'getLocations')->locations;
+		return $response != null ? $response->locations : null;
 	}
 
 
