@@ -40,7 +40,7 @@ class ZenossClient
 	 * @param      $password
 	 * @param null $logger
 	 */
-	public function __construct($host, $username, $password, $logger = null)
+	public function __construct($host, $username, $password, $logger = null, $timeout = 10)
 	{
 		$this->_host = $host;
 		$this->_username = $username;
@@ -52,18 +52,19 @@ class ZenossClient
 		$this->_cookies = new Cookies();
 		$this->_reqCount = 1;
 
+		$this->_client->setUri('http://' . $this->_host . '/zport/acl_users/cookieAuthHelper/login');
+		$this->_client->setOptions(array('timeout' => $timeout));
+
+		$this->_client->setParameterPost(
+			array(
+				 '__ac_name'     => $this->_username,
+				 '__ac_password' => $this->_password,
+				 'submitted'     => 'true',
+				 'came_from'     => $this->_host . '/zport/dmd'
+			)
+		);
 
 		try {
-			$this->_client->setUri('http://' . $this->_host . '/zport/acl_users/cookieAuthHelper/login');
-
-			$this->_client->setParameterPost(
-				array(
-					 '__ac_name'     => $this->_username,
-					 '__ac_password' => $this->_password,
-					 'submitted'     => 'true',
-					 'came_from'     => $this->_host . '/zport/dmd'
-				)
-			);
 
 			$response = $this->_client->setMethod(Request::METHOD_POST)->send();
 
