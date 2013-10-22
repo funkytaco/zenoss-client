@@ -39,6 +39,7 @@ class ZenossClient
 	 * @param      $username
 	 * @param      $password
 	 * @param null $logger
+	 * @param int  $timeout
 	 */
 	public function __construct($host, $username, $password, $logger = null, $timeout = 10)
 	{
