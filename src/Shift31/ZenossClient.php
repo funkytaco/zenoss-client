@@ -23,13 +23,13 @@ class ZenossClient
 				'ZenPackRouter'   => 'zenpack',
 		);
 
-	private $_host;
-	private $_username;
-	private $_password;
+	protected $_host;
+	protected $_username;
+	protected $_password;
 
-	private $_client;
-	private $_cookies;
-	private $_reqCount = 0;
+	protected $_client;
+	protected $_cookies;
+	protected $_reqCount = 0;
 
 	protected $_logger;
 
